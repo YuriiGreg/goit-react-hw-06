@@ -1,9 +1,15 @@
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact, selectContacts } from '../../redux/contactsSlice';
 import styles from './ContactForm.module.css';
+import { nanoid } from 'nanoid';
 
-const ContactForm = ({ addContact }) => {
+const ContactForm = () => {
+  const dispatch = useDispatch();
+  const contacts = useSelector(selectContacts);
+
   const validationSchema = Yup.object({
     name: Yup.string()
       .min(3, 'Must be at least 3 characters')
@@ -15,14 +21,20 @@ const ContactForm = ({ addContact }) => {
       .required('Required'),
   });
 
+  const handleSubmit = (values, { resetForm }) => {
+    if (contacts.some(contact => contact.name === values.name)) {
+      alert(`${values.name} is already in contacts.`);
+      return;
+    }
+    dispatch(addContact({ id: nanoid(), ...values }));
+    resetForm();
+  };
+
   return (
     <Formik
       initialValues={{ name: '', number: '' }}
       validationSchema={validationSchema}
-      onSubmit={(values, { resetForm }) => {
-        addContact(values);
-        resetForm();
-      }}
+      onSubmit={handleSubmit}
     >
       <Form className={styles.form}>
         <label htmlFor="name" className={styles.label}>Name</label>
@@ -40,4 +52,5 @@ const ContactForm = ({ addContact }) => {
 };
 
 export default ContactForm;
+
 
